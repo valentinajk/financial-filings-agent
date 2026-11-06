@@ -1,0 +1,12 @@
+[
+  {"question": "What was HDFC Bank's net interest margin in FY26?", "expected": "3.34", "page": "FY26 p.248"},
+  {"question": "What was the standalone net profit in FY26?", "expected": "74,671.3", "page": "FY26 p.248"},
+  {"question": "What were total deposits at March 31, 2026?", "expected": ["31,05,250", "31,052,504,740"], "page": "FY26 p.248"},
+  {"question": "What was HDFC Bank's return on average assets in FY26?", "expected": "1.94", "page": "FY26 p.248"},
+  {"question": "What was the gross NPA ratio at March 31, 2026?", "expected": "1.15", "page": "FY26 p.248"},
+  {"question": "What were total advances at March 31, 2026?", "expected": "29,37,166", "page": "FY26 p.248"},
+  {"question": "What was the capital adequacy ratio at March 31, 2026?", "expected": ["19.7", "19.71"], "page": "FY26 p.248"},
+  {"question": "What was the gross NPA ratio at March 31, 2025?", "expected": "1.33", "page": "FY25 p.204"},
+  {"question": "What was the capital adequacy ratio at March 31, 2025?", "expected": "19.6", "page": "FY25 p.208"},
+  {"question": "What is the CEO of ICICI Bank's salary?", "expected": "NOT_FOUND", "page": ""}
+]
