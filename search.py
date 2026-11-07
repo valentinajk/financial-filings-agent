@@ -1,8 +1,19 @@
 import re
+from pathlib import Path
+
 import chromadb
 from rank_bm25 import BM25Okapi
 
-col = chromadb.PersistentClient(path="chroma_db").get_collection("filings_local")
+DB_PATH = Path(__file__).parent / "chroma_db"
+COLLECTION = "filings_local"
+
+try:
+    col = chromadb.PersistentClient(path=str(DB_PATH)).get_collection(COLLECTION)
+except Exception as e:
+    raise RuntimeError(
+        f"Search index not found at {DB_PATH}. Run `python build_index.py` first "
+        "(it needs the PDFs in data/), or ship the built chroma_db folder with the app."
+    ) from e
 
 _data = col.get(include=["documents", "metadatas"])
 IDS, DOCS, METAS = _data["ids"], _data["documents"], _data["metadatas"]

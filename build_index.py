@@ -1,14 +1,17 @@
+from pathlib import Path
+
 import chromadb
 from ingest import load_chunks
 
+BASE = Path(__file__).parent
 BATCH = 200
 
 if __name__ == "__main__":
     chunks = []
-    chunks += load_chunks("data/hdfc_fy26.pdf", "HDFC FY26")
-    chunks += load_chunks("data/hdfc_fy25.pdf", "HDFC FY25")
+    chunks += load_chunks(BASE / "data" / "hdfc_fy26.pdf", "HDFC FY26")
+    chunks += load_chunks(BASE / "data" / "hdfc_fy25.pdf", "HDFC FY25")
 
-    db = chromadb.PersistentClient(path="chroma_db")
+    db = chromadb.PersistentClient(path=str(BASE / "chroma_db"))
     col = db.get_or_create_collection("filings_local")
 
     start = col.count()  # resumes if interrupted

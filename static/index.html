@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Financial Filings Analyst</title>
+<style>
+  :root {
+    --bg: #f5f7fa;
+    --card: #ffffff;
+    --ink: #1b2430;
+    --muted: #5d6b7a;
+    --accent: #0b4f8a;
+    --accent-soft: #e6f0fa;
+    --line: #dde3ea;
+    --error: #b3261e;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    line-height: 1.5;
+  }
+  main { max-width: 760px; margin: 0 auto; padding: 32px 16px 64px; }
+  h1 { font-size: 1.5rem; margin: 0 0 4px; }
+  .sub { color: var(--muted); margin: 0 0 24px; font-size: 0.95rem; }
+  form { display: flex; gap: 8px; }
+  input[type="text"] {
+    flex: 1; padding: 12px 14px; font-size: 1rem;
+    border: 1px solid var(--line); border-radius: 8px; background: var(--card); color: var(--ink);
+  }
+  input[type="text"]:focus { outline: 2px solid var(--accent); border-color: transparent; }
+  button {
+    padding: 12px 18px; font-size: 1rem; border: 0; border-radius: 8px;
+    background: var(--accent); color: #fff; cursor: pointer;
+  }
+  button:disabled { opacity: 0.6; cursor: wait; }
+  .examples { margin: 12px 0 24px; display: flex; flex-wrap: wrap; gap: 8px; }
+  .examples button {
+    background: var(--accent-soft); color: var(--accent);
+    padding: 6px 12px; font-size: 0.85rem; border-radius: 999px;
+  }
+  .card {
+    background: var(--card); border: 1px solid var(--line); border-radius: 10px;
+    padding: 16px; margin-bottom: 14px;
+  }
+  .q { font-weight: 600; margin: 0 0 8px; }
+  .a { white-space: pre-wrap; margin: 0; }
+  .meta { margin-top: 12px; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; font-size: 0.8rem; color: var(--muted); }
+  .chip { background: var(--accent-soft); color: var(--accent); padding: 2px 8px; border-radius: 999px; }
+  .error { color: var(--error); }
+  .note { color: var(--muted); font-size: 0.8rem; margin-top: 32px; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Financial Filings Analyst</h1>
+  <p class="sub">Ask questions about HDFC Bank's FY25 and FY26 annual reports. Answers cite the report and page.</p>
+
+  <form id="form">
+    <input id="question" type="text" placeholder="e.g. How did gross NPA change from FY25 to FY26?" maxlength="500" autocomplete="off" required>
+    <button id="send" type="submit">Ask</button>
+  </form>
+
+  <div class="examples" id="examples"></div>
+  <div id="results"></div>
+
+  <p class="note">Covers HDFC Bank's FY25 and FY26 annual reports only. The first answer can take 10 to 20 seconds. Check important figures against the cited page.</p>
+</main>
+
+<script>
+  const form = document.getElementById("form");
+  const input = document.getElementById("question");
+  const send = document.getElementById("send");
+  const results = document.getElementById("results");
+  const examples = document.getElementById("examples");
+
+  const EXAMPLES = [
+    "How did gross NPA change from FY25 to FY26?",
+    "What was the net interest margin in FY26?",
+    "What was the standalone net profit in FY26?",
+    "What is the CEO of ICICI Bank's salary?"
+  ];
+
+  EXAMPLES.forEach(text => {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.textContent = text;
+    b.addEventListener("click", () => { input.value = text; form.requestSubmit(); });
+    examples.appendChild(b);
+  });
+
+  // Show **bold** text from the model without using innerHTML.
+  function renderAnswer(el, text) {
+    el.textContent = "";
+    text.split("**").forEach((part, i) => {
+      if (i % 2 === 1) {
+        const s = document.createElement("strong");
+        s.textContent = part;
+        el.appendChild(s);
+      } else {
+        el.appendChild(document.createTextNode(part));
+      }
+    });
+  }
+
+  function addCard(question) {
+    const card = document.createElement("div");
+    card.className = "card";
+    const q = document.createElement("p");
+    q.className = "q";
+    q.textContent = question;
+    const a = document.createElement("p");
+    a.className = "a";
+    a.textContent = "Thinking...";
+    const meta = document.createElement("div");
+    meta.className = "meta";
+    card.append(q, a, meta);
+    results.prepend(card);
+    return { a, meta };
+  }
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const question = input.value.trim();
+    if (!question) return;
+
+    const { a, meta } = addCard(question);
+    send.disabled = true;
+    input.value = "";
+
+    try {
+      const res = await fetch("/ask", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ question })
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        a.classList.add("error");
+        a.textContent = data.detail || "Something went wrong. Please try again.";
+        return;
+      }
+      renderAnswer(a, data.answer);
+      if (data.citations.length) {
+        const label = document.createElement("span");
+        label.textContent = "Sources:";
+        meta.appendChild(label);
+        data.citations.forEach(c => {
+          const chip = document.createElement("span");
+          chip.className = "chip";
+          chip.textContent = c;
+          meta.appendChild(chip);
+        });
+      }
+      if (data.tools_used.length) {
+        const t = document.createElement("span");
+        t.textContent = "Tools used: " + data.tools_used.join(", ");
+        meta.appendChild(t);
+      }
+    } catch (err) {
+      a.classList.add("error");
+      a.textContent = "Could not reach the server. Please try again.";
+    } finally {
+      send.disabled = false;
+      input.focus();
+    }
+  });
+</script>
+</body>
+</html>

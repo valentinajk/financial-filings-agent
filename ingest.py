@@ -19,7 +19,9 @@ def load_chunks(path, source, size=1500, overlap_lines=2):
 
 if __name__ == "__main__":
     all_chunks = []
-    all_chunks += load_chunks("data/hdfc_fy26.pdf", "HDFC FY26")
-    all_chunks += load_chunks("data/hdfc_fy25.pdf", "HDFC FY25")
+    from pathlib import Path
+    data = Path(__file__).parent / "data"
+    all_chunks += load_chunks(data / "hdfc_fy26.pdf", "HDFC FY26")
+    all_chunks += load_chunks(data / "hdfc_fy25.pdf", "HDFC FY25")
     print("Total chunks:", len(all_chunks))
     print(all_chunks[500])
