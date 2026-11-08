@@ -35,7 +35,7 @@ flowchart LR
 | Ingest | PDF text is split into chunks of about 1,500 characters at line boundaries, each tagged with source and page | `ingest.py` |
 | Index | Chunks are embedded locally (all-MiniLM-L6-v2) and stored in ChromaDB | `build_index.py` |
 | Retrieve | Meaning-based search and BM25 keyword search are merged with reciprocal rank fusion | `search.py` |
-| Tools | `search_reports`, `compare_years`, `percent_change`, `difference` | `tools.py` |
+| Tools | `search_reports`, `compare_years`, `percent_change`, `difference`, `thousands_to_crore` | `tools.py` |
 | Agent | A loop: the model asks for a tool, the code runs it, the result goes back to the model | `agent.py` |
 | API and UI | FastAPI endpoint and a static HTML page | `api.py`, `static/index.html` |
 | Evaluation | A question set with known answers, scored automatically | `evaluate.py`, `test_set.json` |
@@ -77,23 +77,19 @@ How the score changed while building: semantic search only scored 8/10, adding k
 
 ## Deploy
 
-The `Dockerfile` runs the app on port 7860, which is what Hugging Face Spaces (Docker) expects. Set `GEMINI_API_KEY` as a secret in the host's settings, never in the code. `.dockerignore` keeps `.env` and the PDFs out of the image.
+The app is a single FastAPI service that also serves the HTML page, so it runs on any host that can run Python.
+The built index (`chroma_db/`) is committed to the repo so the host does not need the PDFs.
 
-The app needs the built search index (`chroma_db/`, about 40 MB). It is git-ignored in this repo, and the PDFs are not shipped, so the container cannot build it. Pick one:
+On Render (free web service, no Docker needed):
 
-- **Local `docker build`:** run `python build_index.py` first; `chroma_db/` is copied into the image.
-- **Hugging Face Spaces (builds from git):** in the Space's repo, track the index with Git LFS (files over 10 MB need it) and commit it:
-  ```
-  git lfs install
-  git lfs track "chroma_db/**"
-  git add .gitattributes
-  git add -f chroma_db
-  git commit -m "Add search index"
-  ```
+- Runtime: Python 3
+- Build command: `pip install -r requirements.txt`
+- Start command: `uvicorn api:app --host 0.0.0.0 --port $PORT`
+- Environment variable: `GEMINI_API_KEY` (set in the host's settings, never in the code)
 
+The free tier sleeps after 15 minutes idle, so the first request after a pause can take about a minute.
 If the index is missing, the app stops at startup with a message saying so.
-
-Web requests give up after 60 seconds with a "model is busy" error instead of waiting out free-tier rate limits. The evaluation script has no time limit.
+A `Dockerfile` is also included (port 7860) for hosts that run containers.
 
 ## Tech stack
 

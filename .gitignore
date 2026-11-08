@@ -1,6 +1,5 @@
 .env
 data/
-chroma_db/
 __pycache__/
 eval_results*.json
 chunks_dump.txt
