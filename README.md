@@ -2,7 +2,7 @@
 
 An AI agent that answers questions about HDFC Bank's FY25 and FY26 annual reports. Every figure comes with the report and page it was found on, and the agent refuses to answer when the reports don't contain the answer.
 
-**Live demo:** _add the link here after deployment_
+**Live demo:** https://financial-filings-agent.onrender.com (free tier: the first load after a pause can take about a minute, and the shared Gemini free quota allows only a few questions per minute)
 **Demo video:** _add the link here_
 
 ## What it does
